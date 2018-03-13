@@ -8,7 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	
+
 	"github.com/juju/persistent-cookiejar"
 )
 
@@ -23,7 +23,7 @@ const (
 
 type PixivError struct {
 	Prefix string
-	Msg string
+	Msg    string
 }
 
 func (p *PixivError) Error() string {
@@ -40,7 +40,7 @@ func main() {
 		client *Client
 		err    error
 	)
-	
+
 	defer func() {
 		var a = recover()
 		if a != nil {
@@ -48,14 +48,14 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-	
+
 	if len(os.Args) == 1 {
 		var pixiv = Pixiv{}
-		
+
 		pixiv.Init()
 		return
 	}
-	
+
 	// test
 	if client, err = setHttpClient(); err != nil {
 		panic(err)
@@ -114,13 +114,13 @@ func getResponseBody(resp *http.Response) (string, error) {
 
 func checkIsLoggedIn(resp *http.Response, errMsgWhenFailed string) (_ bool, err error) {
 	var body string
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return false, errors.New(errMsgWhenFailed)
 	}
 	if body, err = getResponseBody(resp); err != nil {
 		return false, err
 	}
-	
+
 	return regexp.MustCompile(`class="user"`).MatchString(body), nil
 }
