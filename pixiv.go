@@ -24,11 +24,11 @@ type CmdData struct {
 }
 
 type ArgData struct {
-	LongCmd      string
-	ShortCmd     string
-	Type         reflect.Kind
-	Help         string
-	IsRequired   bool
+	LongCmd    string
+	ShortCmd   string
+	Type       reflect.Kind
+	Help       string
+	IsRequired bool
 }
 
 type Config struct {
