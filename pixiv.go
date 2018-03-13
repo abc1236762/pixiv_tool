@@ -119,9 +119,9 @@ func (p *Pixiv) checkCmdData() {
 		
 		// When field is "Client", the tag of "cmd" must be "-" because it is not a command
 		if cmdField.Name == "Client" && cmdField.Tag.Get("cmd") != "-" {
-			panic(fmt.Sprintf("Pixiv.checkCmdData: tag \"cmd\" of \"%s\" should be \"-\"", cmdField.Name))
+			panic(fmt.Sprintf("pixiv.checkCmdData: tag \"cmd\" of \"%s\" should be \"-\"", cmdField.Name))
 		} else if cmdField.Name != "Client" && cmdField.Tag.Get("cmd") == "-" {
-			panic(fmt.Sprintf("Pixiv.checkCmdData: tag \"cmd\" of \"%s\" should not be \"-\"", cmdField.Name))
+			panic(fmt.Sprintf("pixiv.checkCmdData: tag \"cmd\" of \"%s\" should not be \"-\"", cmdField.Name))
 		}
 		if cmdField.Tag.Get("cmd") == "-" {
 			continue
@@ -129,7 +129,7 @@ func (p *Pixiv) checkCmdData() {
 		
 		// When field is not "Client", it should have a data in "CmdData" because it is a command
 		if cmdData, haveCmdData = p.CmdData[cmdField.Name]; !haveCmdData {
-			panic(fmt.Sprintf("Pixiv.checkCmdData: %s does not have CmdData", cmdField.Name))
+			panic(fmt.Sprintf("pixiv.checkCmdData: %s does not have CmdData", cmdField.Name))
 		} else {
 			for j := 0; j < cmdFieldType.NumField(); j++ {
 				var (
@@ -140,7 +140,7 @@ func (p *Pixiv) checkCmdData() {
 				
 				// When field is "Client", the tag of "ini" must be "-" because it is not a option or argument
 				if argField.Name == "Client" && argField.Tag.Get("ini") != "-" {
-					panic(fmt.Sprintf("Pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should be \"-\"",
+					panic(fmt.Sprintf("pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should be \"-\"",
 						cmdField.Name, argField.Name))
 				} else if argField.Name != "Client" {
 					// When field not exist in "ArgData", the tag of "ini" must be ",omitempty" because it is a option
@@ -148,7 +148,7 @@ func (p *Pixiv) checkCmdData() {
 						if argField.Tag.Get("ini") == ",omitempty" {
 							continue
 						}
-						panic(fmt.Sprintf("Pixiv.checkCmdData: \"%s.%s\" does not have ArgData",
+						panic(fmt.Sprintf("pixiv.checkCmdData: \"%s.%s\" does not have ArgData",
 							cmdField.Name, argField.Name))
 					}
 					// When argument is required, the tag of "ini" must be "-" or ",omitempty" and
@@ -156,10 +156,10 @@ func (p *Pixiv) checkCmdData() {
 					// from input and then ini file.
 					// When argument is not required, it should have a default value, so the tag of "ini" must be empty
 					if argData.IsRequired && (argField.Tag.Get("ini") != ",omitempty" && argField.Tag.Get("ini") != "-") {
-						panic(fmt.Sprintf("Pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should be \",omitempty\" or \"-\"",
+						panic(fmt.Sprintf("pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should be \",omitempty\" or \"-\"",
 							cmdField.Name, argField.Name))
 					} else if !argData.IsRequired && (argField.Tag.Get("ini") == ",omitempty" || argField.Tag.Get("ini") == "-") {
-						panic(fmt.Sprintf("Pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should not be \",omitempty\" or \"-\"",
+						panic(fmt.Sprintf("pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should not be \",omitempty\" or \"-\"",
 							cmdField.Name, argField.Name))
 					}
 				}
@@ -193,12 +193,12 @@ func (p *Pixiv) initConfig() {
 func (p *Pixiv) loadConfig() (err error) {
 	var config *ini.File
 	
-	if _, err = os.Stat("Config.ini"); os.IsNotExist(err) {
+	if _, err = os.Stat("config.ini"); os.IsNotExist(err) {
 		if err = p.saveConfig(); err != nil {
 			return err
 		}
 	}
-	if config, err = ini.Load("Config.ini"); err != nil {
+	if config, err = ini.Load("config.ini"); err != nil {
 		return err
 	}
 	
@@ -212,5 +212,5 @@ func (p *Pixiv) saveConfig() (err error) {
 		return err
 	}
 	
-	return config.SaveTo("Config.ini")
+	return config.SaveTo("config.ini")
 }

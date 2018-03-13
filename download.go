@@ -74,11 +74,11 @@ func (d *Download) Do() (err error) {
 		return err
 	}
 	defer resp.Body.Close()
-	if isLoggedIn, err = checkIsLoggedIn(resp,
-		"download: request status is not OK when checking that not login yet or not"); err != nil {
+	if isLoggedIn, err = checkIsLoggedIn(resp, d,
+		"request status is not OK when checking that not login yet or not"); err != nil {
 		return err
 	} else if !isLoggedIn {
-		return errors.New("download: not logged in yet")
+		return throw(d, "not logged in yet")
 	}
 	
 	if isID, err = d.IsIDOrList(); err != nil {
@@ -245,7 +245,7 @@ func (d *Download) getWorkData(body string, workData *WorkData) (err error) {
 				return err
 			}
 			if resp.StatusCode != http.StatusOK {
-				return errors.New("download: request status is not OK when getting manga page")
+				return throw(d, "request status is not OK when getting manga page")
 			}
 			if body, err = getResponseBody(resp); err != nil {
 				return err
@@ -271,7 +271,7 @@ func (d *Download) download(artistData *ArtistData, workData *WorkData) (err err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("download: request status is not OK when getting work page")
+		return throw(d, "request status is not OK when getting work page")
 	}
 	if body, err = getResponseBody(resp); err != nil {
 		return err

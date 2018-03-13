@@ -41,11 +41,11 @@ func (l *Logout) logout() (err error) {
 		return err
 	}
 	defer resp.Body.Close()
-	if isLoggedIn, err = checkIsLoggedIn(resp,
-		"logout: request status is not OK when checking that not login yet or not"); err != nil {
+	if isLoggedIn, err = checkIsLoggedIn(resp, l,
+		"request status is not OK when checking that not login yet or not"); err != nil {
 		return err
 	} else if !isLoggedIn {
-		return errors.New("logout: not logged in yet")
+		return throw(l, "not logged in yet")
 	}
 	
 	// Send a GET request to logout
@@ -54,7 +54,7 @@ func (l *Logout) logout() (err error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("logout: request status is not OK when logging out")
+		return throw(l, "request status is not OK when logging out")
 	}
 	
 	// Check that it logged out successful or not
@@ -62,11 +62,11 @@ func (l *Logout) logout() (err error) {
 		return err
 	}
 	defer resp.Body.Close()
-	if isLoggedIn, err = checkIsLoggedIn(resp,
-		"logout: request status is not OK when checking that logout successful or not"); err != nil {
+	if isLoggedIn, err = checkIsLoggedIn(resp, l,
+		"request status is not OK when checking that logout successful or not"); err != nil {
 		return err
 	} else if isLoggedIn {
-		return errors.New("logout: logout failed")
+		return throw(l, "logout failed")
 	}
 	
 	return nil

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -21,18 +21,20 @@ const (
 	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0.2) Gecko/20100101 Firefox/58.0.2"
 )
 
-type PixivError struct {
+type Error struct {
 	Prefix string
 	Msg    string
 }
 
-func (p *PixivError) Error() string {
-	return p.Prefix + ": " + p.Msg
+func (e *Error) Error() string {
+	return e.Prefix + ": " + e.Msg
 }
 
-func (p *PixivError) Throw(msg string) error {
-	p.Msg = msg
-	return p
+func throw(doer Doer, msg string) error {
+	return &Error{
+		Prefix: strings.ToLower(reflect.TypeOf(doer).Elem().Name()),
+		Msg:    msg,
+	}
 }
 
 func main() {
@@ -44,7 +46,7 @@ func main() {
 	defer func() {
 		var a = recover()
 		if a != nil {
-			fmt.Println("error:", a)
+			fmt.Println(a)
 			os.Exit(1)
 		}
 	}()
@@ -112,11 +114,11 @@ func getResponseBody(resp *http.Response) (string, error) {
 	return string(bodyBytes), err
 }
 
-func checkIsLoggedIn(resp *http.Response, errMsgWhenFailed string) (_ bool, err error) {
+func checkIsLoggedIn(resp *http.Response, doer Doer, failedMsg string) (_ bool, err error) {
 	var body string
 
 	if resp.StatusCode != http.StatusOK {
-		return false, errors.New(errMsgWhenFailed)
+		return false, throw(doer, failedMsg)
 	}
 	if body, err = getResponseBody(resp); err != nil {
 		return false, err

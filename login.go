@@ -37,11 +37,11 @@ func (l *Login) login() (err error) {
 		return err
 	}
 	defer resp.Body.Close()
-	if isLoggedIn, err = checkIsLoggedIn(resp,
-		"login: request status is not OK when checking that login already or not"); err != nil {
+	if isLoggedIn, err = checkIsLoggedIn(resp, l,
+		"request status is not OK when checking that login already or not"); err != nil {
 		return err
 	} else if isLoggedIn {
-		return errors.New("login: already logged in")
+		return throw(l, "already logged in")
 	}
 	
 	// Get post key and send a POST request to login
@@ -60,15 +60,15 @@ func (l *Login) login() (err error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("login: request status is not OK when logging in")
+		return throw(l, "request status is not OK when logging in")
 	}
 	
 	// Check that it logged in successful or not
-	if isLoggedIn, err = checkIsLoggedIn(resp,
-		"login: request status is not OK when checking that login successful or not"); err != nil {
+	if isLoggedIn, err = checkIsLoggedIn(resp, l,
+		"request status is not OK when checking that login successful or not"); err != nil {
 		return err
 	} else if !isLoggedIn {
-		return errors.New("login: login failed, please check username and password")
+		return throw(l, "login failed, please check username and password")
 	}
 	
 	return nil
@@ -86,7 +86,7 @@ func (l *Login) getPostKey() (_ string, err error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("login: request status is not OK when getting post key")
+		return "", throw(l, "request status is not OK when getting post key")
 	}
 	if body, err = getResponseBody(resp); err != nil {
 		return "", err
