@@ -30,6 +30,11 @@ func (p *PixivError) Error() string {
 	return p.Prefix + ": " + p.Msg
 }
 
+func (p *PixivError) Throw(msg string) error {
+	p.Msg = msg
+	return p
+}
+
 func main() {
 	var (
 		client *Client
