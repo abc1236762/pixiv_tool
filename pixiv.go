@@ -164,8 +164,8 @@ func (p *Pixiv) checkCmdData() {
 					
 					// When argument is required, the tag of "ini"
 					// must be "-" or ",omitempty", "-" means the argument
-					// must be gotten from input, ",omitempty" means the argument
-					// can be gotten from input and then ini file.
+					// must be gotten from input, ",omitempty" means the
+					// argument can be gotten from input and then ini file.
 					// When argument is not required, it should have
 					// a default value, so the tag of "ini" must be empty
 					if argData.IsRequired && (argField.Tag.Get("ini") !=
