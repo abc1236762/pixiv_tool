@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	
 	"gopkg.in/ini.v1"
 )
@@ -107,9 +107,10 @@ func (p *Pixiv) initCmdData() {
 }
 
 func (p *Pixiv) checkCmdData() {
-	var types = reflect.TypeOf(p.Config).Elem()
+	var panicMsg []string
 	
-	for i := 0; i < types.NumField(); i++ {
+	for i, types := 0, reflect.TypeOf(p.Config).Elem();
+			i < types.NumField(); i++ {
 		var (
 			cmdField     = types.Field(i)
 			cmdFieldType = cmdField.Type.Elem()
@@ -117,19 +118,24 @@ func (p *Pixiv) checkCmdData() {
 			haveCmdData  bool
 		)
 		
-		// When field is "Client", the tag of "cmd" must be "-" because it is not a command
+		// When field is "Client",
+		// the tag of "cmd" must be "-" because it is not a command
 		if cmdField.Name == "Client" && cmdField.Tag.Get("cmd") != "-" {
-			panic(fmt.Sprintf("pixiv.checkCmdData: tag \"cmd\" of \"%s\" should be \"-\"", cmdField.Name))
+			panicMsg = append(panicMsg, "tag \"cmd\" of \""+
+					cmdField.Name+ "\" should be \"-\"")
 		} else if cmdField.Name != "Client" && cmdField.Tag.Get("cmd") == "-" {
-			panic(fmt.Sprintf("pixiv.checkCmdData: tag \"cmd\" of \"%s\" should not be \"-\"", cmdField.Name))
+			panicMsg = append(panicMsg, "tag \"cmd\" of \""+
+					cmdField.Name+ "\" should not be \"-\"")
 		}
 		if cmdField.Tag.Get("cmd") == "-" {
 			continue
 		}
 		
-		// When field is not "Client", it should have a data in "CmdData" because it is a command
+		// When field is not "Client",
+		// it should have a data in "CmdData" because it is a command
 		if cmdData, haveCmdData = p.CmdData[cmdField.Name]; !haveCmdData {
-			panic(fmt.Sprintf("pixiv.checkCmdData: %s does not have CmdData", cmdField.Name))
+			panicMsg = append(panicMsg, "\""+
+					cmdField.Name+ "\" does not have CmdData")
 		} else {
 			for j := 0; j < cmdFieldType.NumField(); j++ {
 				var (
@@ -138,33 +144,49 @@ func (p *Pixiv) checkCmdData() {
 					haveArgData bool
 				)
 				
-				// When field is "Client", the tag of "ini" must be "-" because it is not a option or argument
+				// When field is "Client", the tag of "ini"
+				// must be "-" because it is not a option or argument
 				if argField.Name == "Client" && argField.Tag.Get("ini") != "-" {
-					panic(fmt.Sprintf("pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should be \"-\"",
-						cmdField.Name, argField.Name))
+					panicMsg = append(panicMsg, "tag \"ini\" of \""+
+							cmdField.Name+ "."+ argField.Name+ "\" should be \"-\"")
 				} else if argField.Name != "Client" {
-					// When field not exist in "ArgData", the tag of "ini" must be ",omitempty" because it is a option
-					if argData, haveArgData = cmdData.ArgData[argField.Name]; !haveArgData {
+					
+					// When field not exist in "ArgData", the tag of "ini"
+					// must be ",omitempty" because it is a option
+					if argData, haveArgData =
+							cmdData.ArgData[argField.Name]; !haveArgData {
 						if argField.Tag.Get("ini") == ",omitempty" {
 							continue
 						}
-						panic(fmt.Sprintf("pixiv.checkCmdData: \"%s.%s\" does not have ArgData",
-							cmdField.Name, argField.Name))
+						panicMsg = append(panicMsg, "\"" + cmdField.Name+
+								"."+ argField.Name+ "\" does not have ArgData")
 					}
-					// When argument is required, the tag of "ini" must be "-" or ",omitempty" and
-					// when "-", the argument must be gotten from input, when ",omitempty", the argument can be gotten
-					// from input and then ini file.
-					// When argument is not required, it should have a default value, so the tag of "ini" must be empty
-					if argData.IsRequired && (argField.Tag.Get("ini") != ",omitempty" && argField.Tag.Get("ini") != "-") {
-						panic(fmt.Sprintf("pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should be \",omitempty\" or \"-\"",
-							cmdField.Name, argField.Name))
-					} else if !argData.IsRequired && (argField.Tag.Get("ini") == ",omitempty" || argField.Tag.Get("ini") == "-") {
-						panic(fmt.Sprintf("pixiv.checkCmdData: tag \"ini\" of \"%s.%s\" should not be \",omitempty\" or \"-\"",
-							cmdField.Name, argField.Name))
+					
+					// When argument is required, the tag of "ini"
+					// must be "-" or ",omitempty", "-" means the argument
+					// must be gotten from input, ",omitempty" means the argument
+					// can be gotten from input and then ini file.
+					// When argument is not required, it should have
+					// a default value, so the tag of "ini" must be empty
+					if argData.IsRequired && (argField.Tag.Get("ini") !=
+							",omitempty" && argField.Tag.Get("ini") != "-") {
+						panicMsg = append(panicMsg, "tag \"ini\" of \""+
+								cmdField.Name+ "."+ argField.Name+
+								"\" should be \",omitempty\" or \"-\"")
+					} else if !argData.IsRequired && (argField.Tag.Get("ini") ==
+							",omitempty" || argField.Tag.Get("ini") == "-") {
+						panicMsg = append(panicMsg, "tag \"ini\" of \""+
+								cmdField.Name+ "."+ argField.Name+
+								"\" should not be \",omitempty\" or \"-\"")
 					}
+					
 				}
 			}
 		}
+	}
+	
+	if len(panicMsg) > 0 {
+		panic("checkCmdData: " + strings.Join(panicMsg, ",\n\t"))
 	}
 }
 

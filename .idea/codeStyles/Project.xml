@@ -1,9 +1,11 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
+    <option name="LINE_SEPARATOR" value="&#10;" />
     <option name="RIGHT_MARGIN" value="80" />
     <option name="SOFT_MARGINS" value="80,160,240" />
     <codeStyleSettings language="go">
       <indentOptions>
+        <option name="CONTINUATION_INDENT_SIZE" value="8" />
         <option name="KEEP_INDENTS_ON_EMPTY_LINES" value="true" />
       </indentOptions>
     </codeStyleSettings>

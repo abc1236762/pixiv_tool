@@ -21,20 +21,54 @@ const (
 	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0.2) Gecko/20100101 Firefox/58.0.2"
 )
 
-type Error struct {
+// An AppError is a implementation of error interface for this app.
+type AppError struct {
 	Prefix string
 	Msg    string
 }
 
-func (e *Error) Error() string {
-	return e.Prefix + ": " + e.Msg
+// Error is needed when implement an error interface.
+func (ae *AppError) Error() string {
+	return ae.Prefix + ": " + ae.Msg
 }
 
+// throw return an error interface made by AppError.
 func throw(doer Doer, msg string) error {
-	return &Error{
+	return &AppError{
 		Prefix: strings.ToLower(reflect.TypeOf(doer).Elem().Name()),
 		Msg:    msg,
 	}
+}
+
+// setHttpClient set a Client with a cookieJar and user agent.
+func setHttpClient() (_ *Client, err error) {
+	var cookieJar *cookiejar.Jar
+	if cookieJar, err = cookiejar.New(
+		&cookiejar.Options{Filename: ".cookie"}); err != nil {
+		return nil, err
+	}
+	return &Client{
+		Client:    &http.Client{Jar: cookieJar},
+		UserAgent: UserAgent,
+	}, err
+}
+
+// getResponseBody get string of body from http response.
+func getResponseBody(resp *http.Response) (string, error) {
+	var bodyBytes, err = ioutil.ReadAll(resp.Body)
+	return string(bodyBytes), err
+}
+
+// checkIsLoggedIn check that this app is logged in on Pixiv or not.
+func checkIsLoggedIn(resp *http.Response, doer Doer, failedMsg string) (_ bool, err error) {
+	var body string
+	if resp.StatusCode != http.StatusOK {
+		return false, throw(doer, failedMsg)
+	}
+	if body, err = getResponseBody(resp); err != nil {
+		return false, err
+	}
+	return regexp.MustCompile(`class="user"`).MatchString(body), nil
 }
 
 func main() {
@@ -43,10 +77,10 @@ func main() {
 		err    error
 	)
 	
+	// test
 	defer func() {
-		var a = recover()
-		if a != nil {
-			fmt.Println(a)
+		if r := recover(); r != nil {
+			fmt.Println(r)
 			os.Exit(1)
 		}
 	}()
@@ -58,7 +92,6 @@ func main() {
 		return
 	}
 	
-	// test
 	if client, err = setHttpClient(); err != nil {
 		panic(err)
 	}
@@ -96,33 +129,5 @@ func main() {
 		}
 	}
 	// ----
-}
-
-func setHttpClient() (_ *Client, err error) {
-	var cookieJar *cookiejar.Jar
-	if cookieJar, err = cookiejar.New(&cookiejar.Options{Filename: ".cookie"}); err != nil {
-		return nil, err
-	}
-	return &Client{
-		Client:    &http.Client{Jar: cookieJar},
-		UserAgent: UserAgent,
-	}, err
-}
-
-func getResponseBody(resp *http.Response) (string, error) {
-	var bodyBytes, err = ioutil.ReadAll(resp.Body)
-	return string(bodyBytes), err
-}
-
-func checkIsLoggedIn(resp *http.Response, doer Doer, failedMsg string) (_ bool, err error) {
-	var body string
 	
-	if resp.StatusCode != http.StatusOK {
-		return false, throw(doer, failedMsg)
-	}
-	if body, err = getResponseBody(resp); err != nil {
-		return false, err
-	}
-	
-	return regexp.MustCompile(`class="user"`).MatchString(body), nil
 }

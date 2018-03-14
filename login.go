@@ -93,5 +93,5 @@ func (l *Login) getPostKey() (_ string, err error) {
 	
 	return regexp.MustCompile(
 		`<input.*?name="post_key".*?value="(.*?)".*?>`).
-		FindStringSubmatch(body)[1], err
+			FindStringSubmatch(body)[1], err
 }
