@@ -12,17 +12,22 @@ type Doer interface {
 	Do() error
 }
 
+// A Pixiv save config data and command data about this app.
+// All functions in Pixiv use panic to throw error because
+// these should be fixed before release.
 type Pixiv struct {
 	Config  *Config
 	CmdData map[string]CmdData
 }
 
+// A CmdData save data of commands about this app.
 type CmdData struct {
 	Cmd     string
 	Help    string
 	ArgData map[string]ArgData
 }
 
+// A ArgData save data of arguments of each command about this app.
 type ArgData struct {
 	LongCmd    string
 	ShortCmd   string
@@ -31,6 +36,7 @@ type ArgData struct {
 	IsRequired bool
 }
 
+// A Config have each function include values from config.ini and default.
 type Config struct {
 	*Client `cmd:"-"`
 	*Login
@@ -38,6 +44,7 @@ type Config struct {
 	*Download
 }
 
+// Init initialize contents of Pixiv.
 func (p *Pixiv) Init() {
 	if p.Config != nil || p.CmdData != nil {
 		panic("pixiv.Init: struct \"Pixiv\" should be blank inside")
@@ -48,6 +55,7 @@ func (p *Pixiv) Init() {
 	p.loadConfig()
 }
 
+// initCmdData initialize contents of Pixiv.CmdData.
 func (p *Pixiv) initCmdData() {
 	p.CmdData = map[string]CmdData{
 		"Login": {
@@ -106,6 +114,8 @@ func (p *Pixiv) initCmdData() {
 	}
 }
 
+// checkCmdData check contents of Pixiv.CmdData and check each function of
+// this app matches the requirements of Pixiv.CmdData or not.
 func (p *Pixiv) checkCmdData() {
 	var panicMsg []string
 	
@@ -119,7 +129,7 @@ func (p *Pixiv) checkCmdData() {
 		)
 		
 		// When field is "Client",
-		// the tag of "cmd" must be "-" because it is not a command
+		// the tag of "cmd" must be "-" because it is not a command.
 		if cmdField.Name == "Client" && cmdField.Tag.Get("cmd") != "-" {
 			panicMsg = append(panicMsg, "tag \"cmd\" of \""+
 					cmdField.Name+ "\" should be \"-\"")
@@ -132,7 +142,7 @@ func (p *Pixiv) checkCmdData() {
 		}
 		
 		// When field is not "Client",
-		// it should have a data in "CmdData" because it is a command
+		// it should have a data in "CmdData" because it is a command.
 		if cmdData, haveCmdData = p.CmdData[cmdField.Name]; !haveCmdData {
 			panicMsg = append(panicMsg, "\""+
 					cmdField.Name+ "\" does not have CmdData")
@@ -145,14 +155,14 @@ func (p *Pixiv) checkCmdData() {
 				)
 				
 				// When field is "Client", the tag of "ini"
-				// must be "-" because it is not a option or argument
+				// must be "-" because it is not a option or argument.
 				if argField.Name == "Client" && argField.Tag.Get("ini") != "-" {
 					panicMsg = append(panicMsg, "tag \"ini\" of \""+
 							cmdField.Name+ "."+ argField.Name+ "\" should be \"-\"")
 				} else if argField.Name != "Client" {
 					
 					// When field not exist in "ArgData", the tag of "ini"
-					// must be ",omitempty" because it is a option
+					// must be ",omitempty" because it is a option.
 					if argData, haveArgData =
 							cmdData.ArgData[argField.Name]; !haveArgData {
 						if argField.Tag.Get("ini") == ",omitempty" {
@@ -167,7 +177,7 @@ func (p *Pixiv) checkCmdData() {
 					// must be gotten from input, ",omitempty" means the
 					// argument can be gotten from input and then ini file.
 					// When argument is not required, it should have
-					// a default value, so the tag of "ini" must be empty
+					// a default value, so the tag of "ini" must be empty.
 					if argData.IsRequired && (argField.Tag.Get("ini") !=
 							",omitempty" && argField.Tag.Get("ini") != "-") {
 						panicMsg = append(panicMsg, "tag \"ini\" of \""+
@@ -186,10 +196,11 @@ func (p *Pixiv) checkCmdData() {
 	}
 	
 	if len(panicMsg) > 0 {
-		panic("checkCmdData: " + strings.Join(panicMsg, ",\n\t"))
+		panic("pixiv.checkCmdData: " + strings.Join(panicMsg, ",\n\t"))
 	}
 }
 
+// initConfig initialize contents of Pixiv.Config with default values.
 func (p *Pixiv) initConfig() {
 	p.Config = &Config{
 		Client: &Client{
@@ -212,6 +223,7 @@ func (p *Pixiv) initConfig() {
 	}
 }
 
+// loadConfig load config.ini and set values to Pixiv.Config.
 func (p *Pixiv) loadConfig() (err error) {
 	var config *ini.File
 	
@@ -227,6 +239,7 @@ func (p *Pixiv) loadConfig() (err error) {
 	return config.MapTo(p.Config)
 }
 
+// saveConfig get values of Pixiv.Config and save to config.ini.
 func (p *Pixiv) saveConfig() (err error) {
 	var config = ini.Empty()
 	
