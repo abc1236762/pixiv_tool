@@ -15,9 +15,9 @@ import (
 const (
 	PixivHomeURL   = "https://www.pixiv.net/"
 	PixivLoginURL  = "https://accounts.pixiv.net/login?lang=ja&source=pc&view_type=page&ref=wwwtop_accounts_index"
-	PixivLogoutURL = "https://www.pixiv.net/logout.php?return_to=%2F"
-	PixivWorkURL   = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=%s"
-	PixivMangaURL  = "https://www.pixiv.net/member_illust.php?mode=manga_big&illust_id=%s&page=%d"
+	PixivLogoutURL = PixivHomeURL + "logout.php?return_to=%2F"
+	PixivWorkURL   = PixivHomeURL + "member_illust.php?mode=medium&illust_id=%s"
+	PixivMangaURL  = PixivHomeURL + "member_illust.php?mode=manga_big&illust_id=%s&page=%d"
 	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:59.0) Gecko/20100101 Firefox/59.0"
 )
 
