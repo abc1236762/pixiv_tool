@@ -18,7 +18,7 @@ const (
 	PixivLogoutURL = "https://www.pixiv.net/logout.php?return_to=%2F"
 	PixivWorkURL   = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=%s"
 	PixivMangaURL  = "https://www.pixiv.net/member_illust.php?mode=manga_big&illust_id=%s&page=%d"
-	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0.2) Gecko/20100101 Firefox/58.0.2"
+	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:59.0) Gecko/20100101 Firefox/59.0"
 )
 
 // An AppError is a implementation of error interface for this app.
