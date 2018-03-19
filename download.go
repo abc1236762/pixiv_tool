@@ -197,12 +197,10 @@ func (d *Download) getArtistData(body string, artistData *ArtistData) {
 	artistData.Nickname = regexp.MustCompile(
 		`<span class="user-name">(.+?)</span>`).FindStringSubmatch(body)[1]
 	
-	/*
-	fmt.Printf("artistData:\n")
-	fmt.Printf("ID->%v\n", artistData.ID)
-	fmt.Printf("Username->%v\n", artistData.Username)
-	fmt.Printf("Nickname->%v\n", artistData.Nickname)
-	*/
+	// fmt.Printf("artistData:\n")
+	// fmt.Printf("ID->%v\n", artistData.ID)
+	// fmt.Printf("Username->%v\n", artistData.Username)
+	// fmt.Printf("Nickname->%v\n", artistData.Nickname)
 }
 
 // getArtistData get work data from response body of a work.
