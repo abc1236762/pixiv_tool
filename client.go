@@ -138,5 +138,6 @@ func (c *Client) Post(url string, contentType string, body io.Reader) (resp *htt
 // See the Client.Do method documentation for details on how redirects
 // are handled.
 func (c *Client) PostForm(url string, data url.Values) (resp *http.Response, err error) {
-	return c.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
+	return c.Post(url, "application/x-www-form-urlencoded",
+		strings.NewReader(data.Encode()))
 }

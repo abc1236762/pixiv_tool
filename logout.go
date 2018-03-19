@@ -7,19 +7,21 @@ import (
 	"github.com/juju/persistent-cookiejar"
 )
 
+// A Logout process logout in this app.
 type Logout struct {
 	Client           *Client `ini:"-"`
 	WillDeleteCookie bool
 }
 
+// Do run logout process in this app.
 func (l *Logout) Do() (err error) {
 	if err = l.logout(); err != nil {
 		return err
 	}
 	
-	// Delete or update cookie file
+	// After logged out, delete or update cookieJar.
 	if l.WillDeleteCookie {
-		if err = os.Remove(".cookie"); err != nil {
+		if err = os.Remove(CookieFileName); err != nil {
 			return err
 		}
 	} else {
@@ -29,6 +31,7 @@ func (l *Logout) Do() (err error) {
 	return nil
 }
 
+// logout make this app log out from Pixiv.
 func (l *Logout) logout() (err error) {
 	var (
 		resp       *http.Response
@@ -41,7 +44,8 @@ func (l *Logout) logout() (err error) {
 	}
 	defer resp.Body.Close()
 	if isLoggedIn, err = checkIsLoggedIn(resp, l,
-		"request status is not OK when checking that not login yet or not"); err != nil {
+		"request status is not OK when checking " +
+			"that not login yet or not"); err != nil {
 		return err
 	} else if !isLoggedIn {
 		return throw(l, "not logged in yet")
@@ -62,7 +66,8 @@ func (l *Logout) logout() (err error) {
 	}
 	defer resp.Body.Close()
 	if isLoggedIn, err = checkIsLoggedIn(resp, l,
-		"request status is not OK when checking that logout successful or not"); err != nil {
+		"request status is not OK when checking " +
+			"that logout successful or not"); err != nil {
 		return err
 	} else if isLoggedIn {
 		return throw(l, "logout failed")

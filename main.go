@@ -19,6 +19,7 @@ const (
 	PixivWorkURL   = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=%s"
 	PixivMangaURL  = "https://www.pixiv.net/member_illust.php?mode=manga_big&illust_id=%s&page=%d"
 	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0.2) Gecko/20100101 Firefox/58.0.2"
+	CookieFileName = ".cookie"
 )
 
 // An AppError is a implementation of error interface for this app.
@@ -44,7 +45,7 @@ func throw(doer Doer, msg string) error {
 func setHttpClient() (_ *Client, err error) {
 	var cookieJar *cookiejar.Jar
 	if cookieJar, err = cookiejar.New(
-		&cookiejar.Options{Filename: ".cookie"}); err != nil {
+		&cookiejar.Options{Filename: CookieFileName}); err != nil {
 		return nil, err
 	}
 	return &Client{
@@ -86,9 +87,7 @@ func main() {
 	}()
 	
 	if len(os.Args) == 1 {
-		var pixiv = Pixiv{}
-		
-		pixiv.Init()
+		new(Pixiv).Init()
 		return
 	}
 	
