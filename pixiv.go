@@ -214,9 +214,9 @@ func (p *Pixiv) initConfig() {
 		Download: &Download{
 			Path: "./",
 			Naming: Naming{
-				SingleFile:   "<artist.name>/(<work_id>) <work_name>",
-				MultipleFile: "<work_page>",
-				Folder:       "<artist_name>/(<work_id>) <work_name>",
+				SingleFile:   "<artist.name>/(<work.id>) <work.name>",
+				MultipleFile: "<work.page>",
+				Folder:       "<artist.name>/(<work.id>) <work.name>",
 			},
 			Metadata: "",
 		},
