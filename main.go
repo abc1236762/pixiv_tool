@@ -45,7 +45,7 @@ func throw(doer Doer, msg string) error {
 // getUserAgent get default user agent of this app in each os.
 func getUserAgent() string {
 	// browserVer and userAgentOS must update regularly.
-	var browserVer = 59
+	var browserVer uint32 = 59
 	var userAgentOS, geckoVer = func() (string, string) {
 		switch runtime.GOOS {
 		case "windows":
