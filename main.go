@@ -7,13 +7,14 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"runtime"
 	"strings"
 	
 	"github.com/juju/persistent-cookiejar"
 )
 
 const (
-	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:59.0) Gecko/20100101 Firefox/59.0"
+	UserAgentFmt   = "Mozilla/5.0 (%s rv:%d.0) Gecko/%s Firefox/%d.0"
 	PixivHomeURL   = "https://www.pixiv.net/"
 	PixivLoginURL  = "https://accounts.pixiv.net/login?lang=ja&source=pc&view_type=page&ref=wwwtop_accounts_index"
 	PixivLogoutURL = PixivHomeURL + "logout.php?return_to=%2F"
@@ -41,17 +42,25 @@ func throw(doer Doer, msg string) error {
 	}
 }
 
-// setHttpClient set a Client with a cookieJar and user agent.
-func setHttpClient() (_ *Client, err error) {
-	var cookieJar *cookiejar.Jar
-	if cookieJar, err = cookiejar.New(
-		&cookiejar.Options{Filename: ".cookie"}); err != nil {
-		return nil, err
-	}
-	return &Client{
-		Client:    &http.Client{Jar: cookieJar},
-		UserAgent: UserAgent,
-	}, err
+// getUserAgent get default user agent of this app in each os.
+func getUserAgent() string {
+	// browserVer and userAgentOS must update regularly.
+	var browserVer = 59
+	var userAgentOS, geckoVer = func() (string, string) {
+		switch runtime.GOOS {
+		case "windows":
+			return "Windows NT 10.0; Win64; x64;", "20100101"
+		case "darwin":
+			return "Macintosh; Intel Mac OS X 10.13;", "20100101"
+		case "android":
+			return "Android 8.1.0; Tablet;",
+					fmt.Sprintf("%d.0", browserVer)
+		default:
+			return "X11; Linux x86_64;", "20100101"
+		}
+	}()
+	return fmt.Sprintf(UserAgentFmt,
+		userAgentOS, browserVer, geckoVer, browserVer)
 }
 
 // getResponseBody get string of body from http response.
@@ -72,13 +81,27 @@ func checkIsLoggedIn(resp *http.Response, doer Doer, failedMsg string) (_ bool, 
 	return regexp.MustCompile(`class="user"`).MatchString(body), nil
 }
 
+// setHttpClient set a Client with a cookieJar and user agent.
+// TODO: temporarily function, remove after complete function of process command.
+func setHttpClient() (_ *Client, err error) {
+	var cookieJar *cookiejar.Jar
+	if cookieJar, err = cookiejar.New(
+		&cookiejar.Options{Filename: CookieFileName}); err != nil {
+		return nil, err
+	}
+	return &Client{
+		Client:    &http.Client{Jar: cookieJar},
+		UserAgent: getUserAgent(),
+	}, err
+}
+
 func main() {
 	var (
 		client *Client
 		err    error
 	)
 	
-	// test
+	// TODO: temporarily test, remove after complete function of process command.
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
@@ -129,6 +152,6 @@ func main() {
 			return
 		}
 	}
-	// ----
+	// End test.
 	
 }

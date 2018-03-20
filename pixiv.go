@@ -204,7 +204,7 @@ func (p *Pixiv) checkCmdData() {
 func (p *Pixiv) initConfig() {
 	p.Config = &Config{
 		Client: &Client{
-			UserAgent: UserAgent,
+			UserAgent: getUserAgent(),
 		},
 		Login: &Login{
 		},
