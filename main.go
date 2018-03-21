@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	
 	"github.com/juju/persistent-cookiejar"
@@ -54,7 +55,7 @@ func getUserAgent() string {
 			return "Macintosh; Intel Mac OS X 10.13;", "20100101"
 		case "android":
 			return "Android 8.1.0; Tablet;",
-					fmt.Sprintf("%d.0", browserVer)
+					strconv.FormatUint(uint64(browserVer), 10) + ".0"
 		default:
 			return "X11; Linux x86_64;", "20100101"
 		}
@@ -101,7 +102,6 @@ func main() {
 		err    error
 	)
 	
-	// TODO: temporarily test, remove after complete function of process command.
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println(r)
@@ -109,10 +109,12 @@ func main() {
 		}
 	}()
 	
+	// Only use this after complete function of process command.
+	// panic(Pixiv{}.Run())
+	
+	// TODO: temporarily test, remove after complete function of process command.
 	if len(os.Args) == 1 {
-		var pixiv = Pixiv{}
-		
-		pixiv.Init()
+		panic(Pixiv{}.Run())
 		return
 	}
 	

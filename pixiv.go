@@ -13,7 +13,7 @@ type Doer interface {
 }
 
 // A Pixiv save config data and command data about this app.
-// All functions in Pixiv use panic to throw error because
+// Some functions in Pixiv use panic to throw error because
 // these should be fixed before release.
 type Pixiv struct {
 	Config  *Config
@@ -44,15 +44,28 @@ type Config struct {
 	*Download
 }
 
-// Init initialize contents of Pixiv.
-func (p *Pixiv) Init() {
+// Run initialize contents of Pixiv and run selected function.
+func (p *Pixiv) Run() (err error) {
+	var doer Doer
+	
+	// Set default value of command data and check function of command.
 	if p.Config != nil || p.CmdData != nil {
-		panic("pixiv.Init: struct \"Pixiv\" should be blank inside")
+		panic("pixiv: struct \"Pixiv\" should be blank inside when Run")
 	}
 	p.initCmdData()
 	p.checkCmdData()
+	
+	// Get config value to command data.
 	p.initConfig()
-	p.loadConfig()
+	if err = p.loadConfig(); err != nil {
+		return err
+	}
+	
+	// Parse command and arguments and run selected function.
+	if doer, err = p.parseCmdArg(); err != nil {
+		return err
+	}
+	return doer.Do()
 }
 
 // initCmdData initialize contents of Pixiv.CmdData.
@@ -196,7 +209,8 @@ func (p *Pixiv) checkCmdData() {
 	}
 	
 	if len(panicMsg) > 0 {
-		panic("pixiv.checkCmdData: " + strings.Join(panicMsg, ",\n\t"))
+		panic("pixiv: error(s) occurred when checkCmdData:\n\t" +
+				strings.Join(panicMsg, ",\n\t"))
 	}
 }
 
@@ -248,4 +262,10 @@ func (p *Pixiv) saveConfig() (err error) {
 	}
 	
 	return config.SaveTo("config.ini")
+}
+
+// parseCmdArg parse command and arguments to Pixiv and select which to Do.
+func (p *Pixiv) parseCmdArg() (doer Doer, err error) {
+	// TODO parseCmdArg
+	return nil, nil
 }
