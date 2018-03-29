@@ -17,7 +17,7 @@ type Doer interface {
 // these should be fixed before release.
 type Pixiv struct {
 	Config  *Config
-	CmdData map[string]CmdData
+	CmdData map[reflect.Type]CmdData
 }
 
 // A CmdData save data of commands about this app.
@@ -44,8 +44,8 @@ type Config struct {
 	*Download
 }
 
-// Run initialize contents of Pixiv and run selected function.
-func (p *Pixiv) Run() (err error) {
+// Do initialize contents of Pixiv and run selected function.
+func (p *Pixiv) Do() (err error) {
 	var doer Doer
 	
 	// Set default value of command data and check function of command.
@@ -62,7 +62,7 @@ func (p *Pixiv) Run() (err error) {
 	}
 	
 	// Parse command and arguments and run selected function.
-	if doer, err = p.parseCmdArg(); err != nil {
+	if doer, err = p.makeDoer(); err != nil {
 		return err
 	}
 	return doer.Do()
@@ -70,8 +70,8 @@ func (p *Pixiv) Run() (err error) {
 
 // initCmdData initialize contents of Pixiv.CmdData.
 func (p *Pixiv) initCmdData() {
-	p.CmdData = map[string]CmdData{
-		"Login": {
+	p.CmdData = map[reflect.Type]CmdData{
+		reflect.TypeOf(Login{}): {
 			Cmd:  "login",
 			Help: "Login Pixiv",
 			ArgData: map[string]ArgData{
@@ -91,7 +91,7 @@ func (p *Pixiv) initCmdData() {
 				},
 			},
 		},
-		"Logout": {
+		reflect.TypeOf(Logout{}): {
 			Cmd:  "logout",
 			Help: "Logout Pixiv",
 			ArgData: map[string]ArgData{
@@ -104,7 +104,7 @@ func (p *Pixiv) initCmdData() {
 				},
 			},
 		},
-		"Download": {
+		reflect.TypeOf(Download{}): {
 			Cmd:  "download",
 			Help: "Download a work from the ID or works from a list in Pixiv",
 			ArgData: map[string]ArgData{
@@ -156,7 +156,7 @@ func (p *Pixiv) checkCmdData() {
 		
 		// When field is not "Client",
 		// it should have a data in "CmdData" because it is a command.
-		if cmdData, haveCmdData = p.CmdData[cmdField.Name]; !haveCmdData {
+		if cmdData, haveCmdData = p.CmdData[cmdFieldType]; !haveCmdData {
 			panicMsg = append(panicMsg, "\""+
 					cmdField.Name+ "\" does not have CmdData")
 		} else {
@@ -264,8 +264,42 @@ func (p *Pixiv) saveConfig() (err error) {
 	return config.SaveTo("config.ini")
 }
 
-// parseCmdArg parse command and arguments to Pixiv and select which to Do.
-func (p *Pixiv) parseCmdArg() (doer Doer, err error) {
-	// TODO parseCmdArg
-	return nil, nil
+// makeDoer make a doer that correspond to command and include arguments.
+func (p *Pixiv) makeDoer() (doer Doer, err error) {
+	if len(os.Args) <= 1 {
+		return nil, throw(p, "command is required")
+	}
+	if doer = p.getCmdDoer(os.Args[1]); doer == nil {
+		return nil, throw(p, "command \""+os.Args[1]+"\" not found")
+	}
+	if err = p.parseArgs(doer); err != nil {
+		return nil, err
+	}
+	return doer, nil
+}
+
+// getCmdDoer get the corresponding doer of command.
+func (p *Pixiv) getCmdDoer(cmdStr string) (doer Doer) {
+	for cmd, data := range p.CmdData {
+		if cmdStr == data.Cmd {
+			for i, types := 0, reflect.TypeOf(p.Config).Elem();
+					i < types.NumField(); i++ {
+				if types.Field(i).Type.Elem() == cmd {
+					doer = reflect.ValueOf(p.Config).
+						Elem().Field(i).Interface().(Doer)
+					reflect.ValueOf(doer).Elem().FieldByName("Client").
+						Set(reflect.ValueOf(p.Config.Client))
+					return doer
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// parseArgs parse arguments of the command and set to doer.
+func (p *Pixiv) parseArgs(doer Doer) (err error) {
+	// TODO parseArgs
+	
+	return nil
 }

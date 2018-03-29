@@ -113,8 +113,9 @@ func main() {
 	// panic(Pixiv{}.Run())
 	
 	// TODO: temporarily test, remove after complete function of process command.
-	if len(os.Args) == 1 {
-		panic(Pixiv{}.Run())
+	if len(os.Args) <= 2 {
+		var pixiv = Pixiv{}
+		panic(pixiv.Do())
 		return
 	}
 	
