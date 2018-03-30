@@ -3,6 +3,9 @@
     <option name="LINE_SEPARATOR" value="&#10;" />
     <option name="RIGHT_MARGIN" value="80" />
     <option name="SOFT_MARGINS" value="80,160,240" />
+    <GoCodeStyleSettings>
+      <option name="ADD_LEADING_SPACE_TO_COMMENTS" value="true" />
+    </GoCodeStyleSettings>
     <codeStyleSettings language="go">
       <indentOptions>
         <option name="CONTINUATION_INDENT_SIZE" value="8" />

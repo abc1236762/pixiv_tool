@@ -98,8 +98,8 @@ func setHttpClient() (_ *Client, err error) {
 
 func main() {
 	var (
-		client *Client
-		err    error
+	//client *Client
+	//err    error
 	)
 	
 	defer func() {
@@ -113,12 +113,11 @@ func main() {
 	// panic(Pixiv{}.Run())
 	
 	// TODO: temporarily test, remove after complete function of process command.
-	if len(os.Args) <= 2 {
-		var pixiv = Pixiv{}
-		panic(pixiv.Do())
-		return
-	}
 	
+	var pixiv = Pixiv{}
+	panic(pixiv.Do())
+	
+	/*
 	if client, err = setHttpClient(); err != nil {
 		panic(err)
 	}
@@ -155,6 +154,7 @@ func main() {
 			return
 		}
 	}
+	*/
 	// End test.
 	
 }

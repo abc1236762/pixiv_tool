@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	
 	"gopkg.in/ini.v1"
@@ -240,7 +241,6 @@ func (p *Pixiv) initConfig() {
 // loadConfig load config.ini and set values to Pixiv.Config.
 func (p *Pixiv) loadConfig() (err error) {
 	var config *ini.File
-	
 	if _, err = os.Stat("config.ini"); os.IsNotExist(err) {
 		if err = p.saveConfig(); err != nil {
 			return err
@@ -249,18 +249,15 @@ func (p *Pixiv) loadConfig() (err error) {
 	if config, err = ini.Load("config.ini"); err != nil {
 		return err
 	}
-	
 	return config.MapTo(p.Config)
 }
 
 // saveConfig get values of Pixiv.Config and save to config.ini.
 func (p *Pixiv) saveConfig() (err error) {
 	var config = ini.Empty()
-	
 	if err = config.ReflectFrom(p.Config); err != nil {
 		return err
 	}
-	
 	return config.SaveTo("config.ini")
 }
 
@@ -282,16 +279,11 @@ func (p *Pixiv) makeDoer() (doer Doer, err error) {
 func (p *Pixiv) getCmdDoer(cmdStr string) (doer Doer) {
 	for cmd, data := range p.CmdData {
 		if cmdStr == data.Cmd {
-			for i, types := 0, reflect.TypeOf(p.Config).Elem();
-					i < types.NumField(); i++ {
-				if types.Field(i).Type.Elem() == cmd {
-					doer = reflect.ValueOf(p.Config).
-						Elem().Field(i).Interface().(Doer)
-					reflect.ValueOf(doer).Elem().FieldByName("Client").
-						Set(reflect.ValueOf(p.Config.Client))
-					return doer
-				}
-			}
+			doer = reflect.ValueOf(p.Config).Elem().
+				FieldByName(cmd.Name()).Interface().(Doer)
+			reflect.ValueOf(doer).Elem().FieldByName("Client").
+				Set(reflect.ValueOf(p.Config.Client))
+			return doer
 		}
 	}
 	return nil
@@ -300,6 +292,64 @@ func (p *Pixiv) getCmdDoer(cmdStr string) (doer Doer) {
 // parseArgs parse arguments of the command and set to doer.
 func (p *Pixiv) parseArgs(doer Doer) (err error) {
 	// TODO parseArgs
+	var (
+		addedArgs, errMsgs []string
+		isValue            = false
+		args               = os.Args[2:]
+		cmdStr             = reflect.TypeOf(doer).Elem().Name()
+		argData            = p.CmdData[reflect.TypeOf(doer).Elem()].ArgData
+		doerVal            = reflect.ValueOf(doer).Elem()
+	)
+
+Loop:
+	for i, argv := range args {
+		var (
+			isMatched bool
+			argName   string
+		)
+		if isValue {
+			isValue = false
+			continue
+		}
+		for name, data := range argData {
+			if argv == "-"+data.ShortCmd || argv == "--"+data.LongCmd {
+				addedArgs = append(addedArgs, name)
+				argName = name
+				isMatched = true
+			}
+		}
+		if !isMatched {
+			errMsgs = append(errMsgs, "argument \"" + argv+
+					"\" not found in command \""+ cmdStr+ "\"")
+			continue
+		}
+		if argData[argName].Type != reflect.Bool {
+			isValue = true
+		}
+		for _, arg := range addedArgs[:len(addedArgs)-1] {
+			if arg == argName {
+				errMsgs = append(errMsgs, "argument \"" + "-"+
+						argData[argName].ShortCmd+ "\" or \""+ "--"+
+						argData[argName].LongCmd+ "\" is duplicated")
+				continue Loop
+			}
+		}
+		switch argData[argName].Type {
+		case reflect.Bool:
+			doerVal.FieldByName(argName).SetBool(true)
+		case reflect.Int:
+			var argvInt int64
+			if argvInt, err = strconv.ParseInt(args[i+1], 10, 64); err != nil {
+				errMsgs = append(errMsgs, "value of argument \"" + argv+
+						"\" require a number, \""+ args[i+1]+ "\" may not")
+			} else {
+				doerVal.FieldByName(argName).SetInt(argvInt)
+			}
+		
+		case reflect.String:
+			doerVal.FieldByName(argName).SetString(args[i+1])
+		}
+	}
 	
 	return nil
 }
