@@ -80,14 +80,14 @@ func (p *Pixiv) initCmdData() {
 					LongCmd:    "username",
 					ShortCmd:   "u",
 					Type:       reflect.String,
-					Help:       "The username of your Pixiv account",
+					Help:       "the username of your Pixiv account",
 					IsRequired: true,
 				},
 				"Password": {
 					LongCmd:    "password",
 					ShortCmd:   "p",
 					Type:       reflect.String,
-					Help:       "The password of your Pixiv account",
+					Help:       "the password of your Pixiv account",
 					IsRequired: true,
 				},
 			},
@@ -100,7 +100,7 @@ func (p *Pixiv) initCmdData() {
 					LongCmd:    "delete-cookie",
 					ShortCmd:   "d",
 					Type:       reflect.Bool,
-					Help:       "Delete the cookie",
+					Help:       "delete the cookie",
 					IsRequired: false,
 				},
 			},
@@ -147,7 +147,8 @@ func (p *Pixiv) checkCmdData() {
 		if cmdField.Name == "Client" && cmdField.Tag.Get("cmd") != "-" {
 			panicMsg = append(panicMsg, "tag \"cmd\" of \""+
 					cmdField.Name+ "\" should be \"-\"")
-		} else if cmdField.Name != "Client" && cmdField.Tag.Get("cmd") == "-" {
+		}
+		if cmdField.Name != "Client" && cmdField.Tag.Get("cmd") == "-" {
 			panicMsg = append(panicMsg, "tag \"cmd\" of \""+
 					cmdField.Name+ "\" should not be \"-\"")
 		}
@@ -160,51 +161,52 @@ func (p *Pixiv) checkCmdData() {
 		if cmdData, haveCmdData = p.CmdData[cmdFieldType]; !haveCmdData {
 			panicMsg = append(panicMsg, "\""+
 					cmdField.Name+ "\" does not have CmdData")
-		} else {
-			for j := 0; j < cmdFieldType.NumField(); j++ {
-				var (
-					argField    = cmdFieldType.Field(j)
-					argData     ArgData
-					haveArgData bool
-				)
+			continue
+		}
+		
+		for j := 0; j < cmdFieldType.NumField(); j++ {
+			var (
+				argField    = cmdFieldType.Field(j)
+				argData     ArgData
+				haveArgData bool
+			)
+			
+			// When field is "Client", the tag of "ini"
+			// must be "-" because it is not a option or argument.
+			if argField.Name == "Client" && argField.Tag.Get("ini") != "-" {
+				panicMsg = append(panicMsg, "tag \"ini\" of \""+
+						cmdField.Name+ "."+ argField.Name+ "\" should be \"-\"")
+			} else if argField.Name != "Client" {
 				
-				// When field is "Client", the tag of "ini"
-				// must be "-" because it is not a option or argument.
-				if argField.Name == "Client" && argField.Tag.Get("ini") != "-" {
-					panicMsg = append(panicMsg, "tag \"ini\" of \""+
-							cmdField.Name+ "."+ argField.Name+ "\" should be \"-\"")
-				} else if argField.Name != "Client" {
-					
-					// When field not exist in "ArgData", the tag of "ini"
-					// must be ",omitempty" because it is a option.
-					if argData, haveArgData =
-							cmdData.ArgData[argField.Name]; !haveArgData {
-						if argField.Tag.Get("ini") == ",omitempty" {
-							continue
-						}
-						panicMsg = append(panicMsg, "\"" + cmdField.Name+
-								"."+ argField.Name+ "\" does not have ArgData")
+				// When field not exist in "ArgData", the tag of "ini"
+				// must be ",omitempty" because it is a option.
+				if argData, haveArgData =
+						cmdData.ArgData[argField.Name]; !haveArgData {
+					if argField.Tag.Get("ini") == ",omitempty" {
+						continue
 					}
-					
-					// When argument is required, the tag of "ini"
-					// must be "-" or ",omitempty", "-" means the argument
-					// must be gotten from input, ",omitempty" means the
-					// argument can be gotten from input and then ini file.
-					// When argument is not required, it should have
-					// a default value, so the tag of "ini" must be empty.
-					if argData.IsRequired && (argField.Tag.Get("ini") !=
-							",omitempty" && argField.Tag.Get("ini") != "-") {
-						panicMsg = append(panicMsg, "tag \"ini\" of \""+
-								cmdField.Name+ "."+ argField.Name+
-								"\" should be \",omitempty\" or \"-\"")
-					} else if !argData.IsRequired && (argField.Tag.Get("ini") ==
-							",omitempty" || argField.Tag.Get("ini") == "-") {
-						panicMsg = append(panicMsg, "tag \"ini\" of \""+
-								cmdField.Name+ "."+ argField.Name+
-								"\" should not be \",omitempty\" or \"-\"")
-					}
-					
+					panicMsg = append(panicMsg, "\"" + cmdField.Name+
+							"."+ argField.Name+ "\" does not have ArgData")
 				}
+				
+				// When argument is required, the tag of "ini"
+				// must be "-" or ",omitempty", "-" means the argument
+				// must be gotten from input, ",omitempty" means the
+				// argument can be gotten from input and then ini file.
+				// When argument is not required, it should have
+				// a default value, so the tag of "ini" must be empty.
+				if argData.IsRequired && (argField.Tag.Get("ini") !=
+						",omitempty" && argField.Tag.Get("ini") != "-") {
+					panicMsg = append(panicMsg, "tag \"ini\" of \""+
+							cmdField.Name+ "."+ argField.Name+
+							"\" should be \",omitempty\" or \"-\"")
+				} else if !argData.IsRequired && (argField.Tag.Get("ini") ==
+						",omitempty" || argField.Tag.Get("ini") == "-") {
+					panicMsg = append(panicMsg, "tag \"ini\" of \""+
+							cmdField.Name+ "."+ argField.Name+
+							"\" should not be \",omitempty\" or \"-\"")
+				}
+				
 			}
 		}
 	}
@@ -300,7 +302,8 @@ func (p *Pixiv) parseArgs(doer Doer) (err error) {
 		argData            = p.CmdData[reflect.TypeOf(doer).Elem()].ArgData
 		doerVal            = reflect.ValueOf(doer).Elem()
 	)
-
+	
+	//
 Loop:
 	for i, argv := range args {
 		var (

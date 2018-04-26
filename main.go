@@ -31,9 +31,7 @@ type AppError struct {
 }
 
 // Error is needed when implement an error interface.
-func (ae *AppError) Error() string {
-	return ae.Prefix + ": " + ae.Msg
-}
+func (ae *AppError) Error() string { return ae.Prefix + ": " + ae.Msg }
 
 // throw return an error interface made by AppError.
 func throw(doer Doer, msg string) error {
@@ -98,8 +96,8 @@ func setHttpClient() (_ *Client, err error) {
 
 func main() {
 	var (
-	//client *Client
-	//err    error
+	// client *Client
+	// err    error
 	)
 	
 	defer func() {
